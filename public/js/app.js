@@ -1,4 +1,5 @@
 console.log('Client side javascript file is loaded!')
+console.log('git test commitee')
 
 const weatherForm = document.querySelector('form')
 const search = document.querySelector('input')
