@@ -1,0 +1,50 @@
+const showFile = () => {
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+      var preview = document.getElementById('show-text');
+      var file = document.querySelector('input[type=file]').files[0];
+      var reader = new FileReader();
+
+      var textFile = /text.*/;
+
+      if (file.type.match(textFile)) {
+        reader.onload = function (event) {
+          preview.innerHTML = event.target.result;
+
+          const resp = csvJSON(event.target.result);
+          console.log('----', resp);
+        };
+      } else {
+        preview.innerHTML =
+          "<span class='error'>It doesn't seem to be a text file!</span>";
+      }
+      reader.readAsText(file);
+    } else {
+      alert('Your browser is too old to support HTML5 File API');
+    }
+  };
+
+  const csvJSON = (text, quoteChar = '"', delimiter = ',') => {
+    var rows = text.split('\n');
+    var headers = rows[0].split(',');
+
+    const regex = new RegExp(
+      `\\s*(${quoteChar})?(.*?)\\1\\s*(?:${delimiter}|$)`,
+      'gs'
+    );
+
+    const match = (line) =>
+      [...line.matchAll(regex)].map((m) => m[2]).slice(0, -1);
+
+    var lines = text.split('\n');
+    const heads = headers ?? match(lines.shift());
+    lines = lines.slice(1);
+
+    return lines.map((line) => {
+      return match(line).reduce((acc, cur, i) => {
+        // replace blank matches with `null`
+        const val = cur.length <= 0 ? null : Number(cur) || cur;
+        const key = heads[i] ?? `{i}`;
+        return { ...acc, [key]: val };
+      }, {});
+    });
+  };
