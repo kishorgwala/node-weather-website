@@ -1,57 +1,57 @@
 import React from 'react';
-import { render, waitFor, screen } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
-import DisplayInvestmentNavCh from './DisplayInvestmentNavCh';
+import EmeaRecommendation from './EmeaRecommendation';
 
-jest.mock('axios', () => ({
-  get: jest.fn(() => Promise.resolve({ data: [] })),
-}));
-
-describe('DisplayInvestmentNavCh', () => {
-  it('renders loading state initially', async () => {
-    render(<DisplayInvestmentNavCh />);
-
-    expect(screen.getByText('Fetching Data...')).toBeInTheDocument();
+describe('EmeaRecommendation', () => {
+  it('renders without crashing', () => {
+    render(<EmeaRecommendation />);
   });
 
-  it('renders error message when there is an error', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+  it('renders file type options properly', () => {
+    const { getByLabelText } = render(<EmeaRecommendation />);
+    const fileTypeMenu = getByLabelText('File Type');
+    
+    expect(fileTypeMenu).toBeInTheDocument();
+    expect(fileTypeMenu).toHaveTextContent('Select');
 
-    axios.get.mockRejectedValueOnce(new Error('Network Error'));
-
-    render(<DisplayInvestmentNavCh />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Refreshing your Authentication Token')).toBeInTheDocument();
-    });
+    // Check if all file types are in the dropdown
+    expect(fileTypeMenu).toHaveTextContent('SIX Telekurs Equity');
+    expect(fileTypeMenu).toHaveTextContent('SIX Telekurs ETF');
+    expect(fileTypeMenu).toHaveTextContent('SIX Telekurs Fixed Income');
+    expect(fileTypeMenu).toHaveTextContent('Investment Navigator CH');
+    expect(fileTypeMenu).toHaveTextContent('Investment Navigator CI');
+    expect(fileTypeMenu).toHaveTextContent('Investment Navigator FR');
+    expect(fileTypeMenu).toHaveTextContent('Investment Navigator LU');
+    expect(fileTypeMenu).toHaveTextContent('Investment Navigator UK');
   });
 
-  it('renders data when loaded', async () => {
-    const mockData = [
-      {
-        currency: 'USD',
-        isin: '1234567890',
-        securityname: 'Security 1',
-        fundRegion: 'US',
-      },
-      {
-        currency: 'EUR',
-        isin: '0987654321',
-        securityname: 'Security 2',
-        fundRegion: 'Europe',
-      },
-    ];
+  it('renders selected file type component correctly', () => {
+    const { getByLabelText, getByText } = render(<EmeaRecommendation />);
+    const fileTypeMenu = getByLabelText('File Type');
 
-    axios.get.mockResolvedValueOnce({ data: mockData });
+    fireEvent.change(fileTypeMenu, { target: { value: 'SIX_Tks_Equity' } });
+    expect(getByText('DisplaySixTksEq')).toBeInTheDocument();
 
-    render(<DisplayInvestmentNavCh />);
+    fireEvent.change(fileTypeMenu, { target: { value: 'SIX_Tks_ETF' } });
+    expect(getByText('DisplaySixTksEtf')).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByText('Investment Navigator CH')).toBeInTheDocument();
-      expect(screen.getByText('USD')).toBeInTheDocument();
-      expect(screen.getByText('Security 1')).toBeInTheDocument();
-      expect(screen.getByText('EUR')).toBeInTheDocument();
-      expect(screen.getByText('Security 2')).toBeInTheDocument();
-    });
+    fireEvent.change(fileTypeMenu, { target: { value: 'SIX_Tks_Fixed_Income' } });
+    expect(getByText('DisplaySixTksFi')).toBeInTheDocument();
+
+    fireEvent.change(fileTypeMenu, { target: { value: 'IN_CH' } });
+    expect(getByText('DisplayInvestmentNavCh')).toBeInTheDocument();
+
+    fireEvent.change(fileTypeMenu, { target: { value: 'IN_CI' } });
+    expect(getByText('DisplayInvestmentNavCi')).toBeInTheDocument();
+
+    fireEvent.change(fileTypeMenu, { target: { value: 'IN_FR' } });
+    expect(getByText('DisplayInvestmentNavFr')).toBeInTheDocument();
+
+    fireEvent.change(fileTypeMenu, { target: { value: 'IN_LU' } });
+    expect(getByText('DisplayInvestmentNavLu')).toBeInTheDocument();
+
+    fireEvent.change(fileTypeMenu, { target: { value: 'IN_UK' } });
+    expect(getByText('DisplayInvestmentNavUk')).toBeInTheDocument();
   });
 });
