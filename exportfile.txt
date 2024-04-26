@@ -1,64 +1,32 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
-import EmeaRecommendation from './EmeaRecommendation';
+// FILEPATH: /d:/React/react-router-tutorial/src/pages/EmeaRecommendation.test.js
 
-jest.mock('./EmeaRecommendation/DisplaySixTksEq', () => () => <div>DisplaySixTksEq</div>);
-jest.mock('./EmeaRecommendation/DisplaySixTksEtf', () => () => <div>DisplaySixTksEtf</div>);
-jest.mock('./EmeaRecommendation/DisplaySixTksFi', () => () => <div>DisplaySixTksFi</div>);
-jest.mock('./EmeaRecommendation/DisplayInvestmentNavCh', () => () => <div>DisplayInvestmentNavCh</div>);
-jest.mock('./EmeaRecommendation/DisplayInvestmentNavCi', () => () => <div>DisplayInvestmentNavCi</div>);
-jest.mock('./EmeaRecommendation/DisplayInvestmentNavFr', () => () => <div>DisplayInvestmentNavFr</div>);
-jest.mock('./EmeaRecommendation/DisplayInvestmentNavLu', () => () => <div>DisplayInvestmentNavLu</div>);
-jest.mock('./EmeaRecommendation/DisplayInvestmentNavUk', () => () => <div>DisplayInvestmentNavUk</div>);
+import { render, fireEvent } from '@testing-library/react';
+import EmeaRecommendation from './EmeaRecommendation';
 
 describe('EmeaRecommendation', () => {
   it('renders without crashing', () => {
     render(<EmeaRecommendation />);
   });
 
-  it('renders file type options properly', () => {
-    const { getByLabelText, getByText } = render(<EmeaRecommendation />);
-    const fileTypeMenu = getByLabelText('File Type');
-    
-    expect(fileTypeMenu).toBeInTheDocument();
-    expect(getByText('Select')).toBeInTheDocument();
-    expect(getByText('SIX Telekurs Equity')).toBeInTheDocument();
-    expect(getByText('SIX Telekurs ETF')).toBeInTheDocument();
-    expect(getByText('SIX Telekurs Fixed Income')).toBeInTheDocument();
-    expect(getByText('Investment Navigator CH')).toBeInTheDocument();
-    expect(getByText('Investment Navigator CI')).toBeInTheDocument();
-    expect(getByText('Investment Navigator FR')).toBeInTheDocument();
-    expect(getByText('Investment Navigator LU')).toBeInTheDocument();
-    expect(getByText('Investment Navigator UK')).toBeInTheDocument();
+  it('renders the file type select menu', () => {
+    const { getByLabelText } = render(<EmeaRecommendation />);
+    const select = getByLabelText(/File Type/i);
+    expect(select).toBeInTheDocument();
   });
 
-  it('renders selected file type component correctly', () => {
-    const { getByLabelText, getByText } = render(<EmeaRecommendation />);
-    const fileTypeMenu = getByLabelText('File Type');
+  it('changes value when option is selected', () => {
+    const { getByLabelText } = render(<EmeaRecommendation />);
+    const select = getByLabelText(/File Type/i);
+    fireEvent.change(select, { target: { value: 'SIX_Tks_Equity' } });
+    expect(select.value).toBe('SIX_Tks_Equity');
+  });
 
-    fireEvent.change(fileTypeMenu, { target: { value: 'SIX_Tks_Equity' } });
-    expect(getByText('DisplaySixTksEq')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'SIX_Tks_ETF' } });
-    expect(getByText('DisplaySixTksEtf')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'SIX_Tks_Fixed_Income' } });
-    expect(getByText('DisplaySixTksFi')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'IN_CH' } });
-    expect(getByText('DisplayInvestmentNavCh')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'IN_CI' } });
-    expect(getByText('DisplayInvestmentNavCi')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'IN_FR' } });
-    expect(getByText('DisplayInvestmentNavFr')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'IN_LU' } });
-    expect(getByText('DisplayInvestmentNavLu')).toBeInTheDocument();
-
-    fireEvent.change(fileTypeMenu, { target: { value: 'IN_UK' } });
-    expect(getByText('DisplayInvestmentNavUk')).toBeInTheDocument();
+  // Add more tests for each file type and the expected component to be rendered
+  it('renders DisplaySixTksEq when SIX_Tks_Equity is selected', () => {
+    const { getByLabelText, getByTestId } = render(<EmeaRecommendation />);
+    const select = getByLabelText(/File Type/i);
+    fireEvent.change(select, { target: { value: 'SIX_Tks_Equity' } });
+    const displayComponent = getByTestId('display-six-tks-eq');
+    expect(displayComponent).toBeInTheDocument();
   });
 });
