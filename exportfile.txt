@@ -1,32 +1,36 @@
-// FILEPATH: /d:/React/react-router-tutorial/src/pages/EmeaRecommendation.test.js
+import React, { useEffect, useState} from 'react';
+import axios from 'axios';
 
-import { render, fireEvent } from '@testing-library/react';
-import EmeaRecommendation from './EmeaRecommendation';
+const MyComponent = () => {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([])
 
-describe('EmeaRecommendation', () => {
-  it('renders without crashing', () => {
-    render(<EmeaRecommendation />);
-  });
+  useEffect(() => {
+    const fetchData = async () =>{
+      setLoading(true);
+      try {
+        const {data: response} = await axios.get('/stuff/to/fetch');
+        setData(response);
+      } catch (error) {
+        console.error(error.message);
+      }
+      setLoading(false);
+    }
 
-  it('renders the file type select menu', () => {
-    const { getByLabelText } = render(<EmeaRecommendation />);
-    const select = getByLabelText(/File Type/i);
-    expect(select).toBeInTheDocument();
-  });
+    fetchData();
+  }, []);
 
-  it('changes value when option is selected', () => {
-    const { getByLabelText } = render(<EmeaRecommendation />);
-    const select = getByLabelText(/File Type/i);
-    fireEvent.change(select, { target: { value: 'SIX_Tks_Equity' } });
-    expect(select.value).toBe('SIX_Tks_Equity');
-  });
+  return (
+    <div>
+    {loading && <div>Loading</div>}
+    {!loading && (
+      <div>
+        <h2>Doing stuff with data</h2>
+        {data.map(item => (<span>{item.name}</span>))}
+      </div>
+    )}
+    </div>
+  )
+}
 
-  // Add more tests for each file type and the expected component to be rendered
-  it('renders DisplaySixTksEq when SIX_Tks_Equity is selected', () => {
-    const { getByLabelText, getByTestId } = render(<EmeaRecommendation />);
-    const select = getByLabelText(/File Type/i);
-    fireEvent.change(select, { target: { value: 'SIX_Tks_Equity' } });
-    const displayComponent = getByTestId('display-six-tks-eq');
-    expect(displayComponent).toBeInTheDocument();
-  });
-});
+export default MyComponent;
