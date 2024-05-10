@@ -1,36 +1,43 @@
-import React, { useEffect, useState} from 'react';
+import React from 'react';
+import { render, waitFor, screen } from '@testing-library/react';
 import axios from 'axios';
+import MyComponent from './MyComponent';
 
-const MyComponent = () => {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState([])
+jest.mock('axios');
 
-  useEffect(() => {
-    const fetchData = async () =>{
-      setLoading(true);
-      try {
-        const {data: response} = await axios.get('/stuff/to/fetch');
-        setData(response);
-      } catch (error) {
-        console.error(error.message);
-      }
-      setLoading(false);
-    }
+describe('MyComponent', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
-    fetchData();
-  }, []);
+  test('renders loading when fetching data', async () => {
+    axios.get.mockResolvedValueOnce({ data: [{ name: 'John' }, { name: 'Doe' }] });
 
-  return (
-    <div>
-    {loading && <div>Loading</div>}
-    {!loading && (
-      <div>
-        <h2>Doing stuff with data</h2>
-        {data.map(item => (<span>{item.name}</span>))}
-      </div>
-    )}
-    </div>
-  )
-}
+    render(<MyComponent />);
 
-export default MyComponent;
+    expect(screen.getByText('Loading')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading')).toBeNull();
+      expect(screen.getByText('Doing stuff with data')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('John')).toBeInTheDocument();
+    expect(screen.getByText('Doe')).toBeInTheDocument();
+  });
+
+  test('renders error message when fetch fails', async () => {
+    axios.get.mockRejectedValueOnce(new Error('Failed to fetch'));
+
+    render(<MyComponent />);
+
+    expect(screen.getByText('Loading')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading')).toBeNull();
+      expect(screen.getByText('Error: Failed to fetch')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Doing stuff with data')).toBeNull();
+  });
+});
