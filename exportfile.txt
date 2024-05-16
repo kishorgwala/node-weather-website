@@ -73,15 +73,39 @@ describe('Login Component', () => {
 
 
 -------------------------------------------------------------------------------------
-    const data = { yourData: 'mockedData' };
-    mock.onGet(url.get_recom_investment_nav_ch_url).reply(200, data);
+import axios from 'axios';
+
+jest.mock('axios');
+
+describe('Fetch recommended investment NAV data', () => {
+  it('should fetch data successfully', async () => {
+    const mockData = { nav: 100.50, date: '2023-05-16' };
+    axios.get.mockResolvedValue({ data: mockData });
 
     const setData = jest.fn();
     const setIsLoaded = jest.fn();
     const setError = jest.fn();
 
-    await fetchData(access_token, setData, setIsLoaded, setError);
+    await yourFunctionToTest();
 
-    expect(setData).toHaveBeenCalledWith(data);
+    expect(setData).toHaveBeenCalledWith(mockData);
     expect(setIsLoaded).toHaveBeenCalledWith(true);
-    expect(setError).not.toHaveBeenCalled();
+    expect(setError).toHaveBeenCalledWith({});
+  });
+
+  it('should handle error', async () => {
+    axios.get.mockRejectedValue({ error: 'Internal Server Error' });
+
+    const setData = jest.fn();
+    const setIsLoaded = jest.fn();
+    const setError = jest.fn();
+
+    await yourFunctionToTest();
+
+    expect(setData).not.toHaveBeenCalled();
+    expect(setIsLoaded).not.toHaveBeenCalled();
+    expect(setError).toHaveBeenCalledWith({ error: 'Internal Server Error' });
+  });
+});
+
+
