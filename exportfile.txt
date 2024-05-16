@@ -69,3 +69,19 @@ describe('Login Component', () => {
     global.alert.mockRestore();
   });
 });
+
+
+
+-------------------------------------------------------------------------------------
+    const data = { yourData: 'mockedData' };
+    mock.onGet(url.get_recom_investment_nav_ch_url).reply(200, data);
+
+    const setData = jest.fn();
+    const setIsLoaded = jest.fn();
+    const setError = jest.fn();
+
+    await fetchData(access_token, setData, setIsLoaded, setError);
+
+    expect(setData).toHaveBeenCalledWith(data);
+    expect(setIsLoaded).toHaveBeenCalledWith(true);
+    expect(setError).not.toHaveBeenCalled();
