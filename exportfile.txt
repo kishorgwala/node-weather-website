@@ -1,43 +1,71 @@
 import React from 'react';
-import { render, waitFor, screen } from '@testing-library/react';
-import axios from 'axios';
-import MyComponent from './MyComponent';
+import { render } from '@testing-library/react';
+import Login from './Login';
 
-jest.mock('axios');
+// Mock jQuery
+global.$ = {
+  ajax: jest.fn(),
+};
 
-describe('MyComponent', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('renders loading when fetching data', async () => {
-    axios.get.mockResolvedValueOnce({ data: [{ name: 'John' }, { name: 'Doe' }] });
-
-    render(<MyComponent />);
-
-    expect(screen.getByText('Loading')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.queryByText('Loading')).toBeNull();
-      expect(screen.getByText('Doing stuff with data')).toBeInTheDocument();
+describe('Login Component', () => {
+  it('should make an AJAX GET request in getData', () => {
+    // Mock the AJAX call
+    const ajaxMock = global.$.ajax.mockImplementation(({ success }) => {
+      success({ data: 'test data' });
     });
 
-    expect(screen.getByText('John')).toBeInTheDocument();
-    expect(screen.getByText('Doe')).toBeInTheDocument();
+    // Render the component
+    const { container } = render(<Login />);
+    const instance = container.firstChild._reactRootContainer._internalRoot.current.child.stateNode;
+
+    // Call getData
+    instance.getData();
+
+    // Check the AJAX call
+    expect(ajaxMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'GET',
+        url: expect.any(String),
+        success: expect.any(Function),
+        error: expect.any(Function),
+      })
+    );
+
+    ajaxMock.mockRestore();
   });
 
-  test('renders error message when fetch fails', async () => {
-    axios.get.mockRejectedValueOnce(new Error('Failed to fetch'));
-
-    render(<MyComponent />);
-
-    expect(screen.getByText('Loading')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.queryByText('Loading')).toBeNull();
-      expect(screen.getByText('Error: Failed to fetch')).toBeInTheDocument();
+  it('should handle AJAX success correctly in getData', () => {
+    const successCallback = jest.fn();
+    const ajaxMock = global.$.ajax.mockImplementation(({ success }) => {
+      successCallback();
+      success({ data: 'test data' });
     });
 
-    expect(screen.queryByText('Doing stuff with data')).toBeNull();
+    const { container } = render(<Login />);
+    const instance = container.firstChild._reactRootContainer._internalRoot.current.child.stateNode;
+
+    instance.getData();
+
+    expect(successCallback).toHaveBeenCalled();
+
+    ajaxMock.mockRestore();
+  });
+
+  it('should handle AJAX error correctly in getData', () => {
+    global.alert = jest.fn();
+
+    const ajaxMock = global.$.ajax.mockImplementation(({ error }) => {
+      error();
+    });
+
+    const { container } = render(<Login />);
+    const instance = container.firstChild._reactRootContainer._internalRoot.current.child.stateNode;
+
+    instance.getData();
+
+    expect(global.alert).toHaveBeenCalledWith('ERROR');
+
+    ajaxMock.mockRestore();
+    global.alert.mockRestore();
   });
 });
