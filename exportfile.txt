@@ -107,5 +107,29 @@ describe('Fetch recommended investment NAV data', () => {
     expect(setError).toHaveBeenCalledWith({ error: 'Internal Server Error' });
   });
 });
+-------------------------------------------------------------------------------------------------
+const checkEmpty = require('./yourFunctionFileName');
 
+// Test cases
+describe('checkEmpty', () => {
+  test('returns true when object is empty', () => {
+    expect(checkEmpty({})).toBe(true);
+  });
+
+  test('returns false when object has non-empty values', () => {
+    expect(checkEmpty({ a: 1, b: 'hello', c: null })).toBe(false);
+  });
+
+  test('returns true when object has only null or undefined values', () => {
+    expect(checkEmpty({ a: null, b: undefined, c: null })).toBe(true);
+  });
+
+  test('returns true when object has only falsy values', () => {
+    expect(checkEmpty({ a: 0, b: '', c: false })).toBe(true);
+  });
+
+  test('returns false when object has a mixture of empty and non-empty values', () => {
+    expect(checkEmpty({ a: 0, b: 'hello', c: null })).toBe(false);
+  });
+});
 
