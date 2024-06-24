@@ -1,135 +1,21 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import Login from './Login';
-
-// Mock jQuery
-global.$ = {
-  ajax: jest.fn(),
-};
-
-describe('Login Component', () => {
-  it('should make an AJAX GET request in getData', () => {
-    // Mock the AJAX call
-    const ajaxMock = global.$.ajax.mockImplementation(({ success }) => {
-      success({ data: 'test data' });
-    });
-
-    // Render the component
-    const { container } = render(<Login />);
-    const instance = container.firstChild._reactRootContainer._internalRoot.current.child.stateNode;
-
-    // Call getData
-    instance.getData();
-
-    // Check the AJAX call
-    expect(ajaxMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'GET',
-        url: expect.any(String),
-        success: expect.any(Function),
-        error: expect.any(Function),
-      })
-    );
-
-    ajaxMock.mockRestore();
-  });
-
-  it('should handle AJAX success correctly in getData', () => {
-    const successCallback = jest.fn();
-    const ajaxMock = global.$.ajax.mockImplementation(({ success }) => {
-      successCallback();
-      success({ data: 'test data' });
-    });
-
-    const { container } = render(<Login />);
-    const instance = container.firstChild._reactRootContainer._internalRoot.current.child.stateNode;
-
-    instance.getData();
-
-    expect(successCallback).toHaveBeenCalled();
-
-    ajaxMock.mockRestore();
-  });
-
-  it('should handle AJAX error correctly in getData', () => {
-    global.alert = jest.fn();
-
-    const ajaxMock = global.$.ajax.mockImplementation(({ error }) => {
-      error();
-    });
-
-    const { container } = render(<Login />);
-    const instance = container.firstChild._reactRootContainer._internalRoot.current.child.stateNode;
-
-    instance.getData();
-
-    expect(global.alert).toHaveBeenCalledWith('ERROR');
-
-    ajaxMock.mockRestore();
-    global.alert.mockRestore();
-  });
-});
-
-
-
--------------------------------------------------------------------------------------
-import axios from 'axios';
-
-jest.mock('axios');
-
-describe('Fetch recommended investment NAV data', () => {
-  it('should fetch data successfully', async () => {
-    const mockData = { nav: 100.50, date: '2023-05-16' };
-    axios.get.mockResolvedValue({ data: mockData });
-
-    const setData = jest.fn();
-    const setIsLoaded = jest.fn();
-    const setError = jest.fn();
-
-    await yourFunctionToTest();
-
-    expect(setData).toHaveBeenCalledWith(mockData);
-    expect(setIsLoaded).toHaveBeenCalledWith(true);
-    expect(setError).toHaveBeenCalledWith({});
-  });
-
-  it('should handle error', async () => {
-    axios.get.mockRejectedValue({ error: 'Internal Server Error' });
-
-    const setData = jest.fn();
-    const setIsLoaded = jest.fn();
-    const setError = jest.fn();
-
-    await yourFunctionToTest();
-
-    expect(setData).not.toHaveBeenCalled();
-    expect(setIsLoaded).not.toHaveBeenCalled();
-    expect(setError).toHaveBeenCalledWith({ error: 'Internal Server Error' });
-  });
-});
--------------------------------------------------------------------------------------------------
-const checkEmpty = require('./yourFunctionFileName');
-
-// Test cases
-describe('checkEmpty', () => {
-  test('returns true when object is empty', () => {
-    expect(checkEmpty({})).toBe(true);
-  });
-
-  test('returns false when object has non-empty values', () => {
-    expect(checkEmpty({ a: 1, b: 'hello', c: null })).toBe(false);
-  });
-
-  test('returns true when object has only null or undefined values', () => {
-    expect(checkEmpty({ a: null, b: undefined, c: null })).toBe(true);
-  });
-
-  test('returns true when object has only falsy values', () => {
-    expect(checkEmpty({ a: 0, b: '', c: false })).toBe(true);
-  });
-
-  test('returns false when object has a mixture of empty and non-empty values', () => {
-    expect(checkEmpty({ a: 0, b: 'hello', c: null })).toBe(false);
-  });
-});
-
+import { useState, useEffect } from 'react';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+export const useApi = <T>(url: string, options?: AxiosRequestConfig)
+const [data, setData] = useState<T | null>(null);
+const [isLoading, setIsLoading] = useState(false);
+const [error, setError] = useState(null);
+const fetchData = async () {
+setIsLoading(true);
+try {
+const response: AxiosResponse<T> = await axios(url, options);
+setData(response.data);
+} catch (error) {
+setError(error);
+}
+setIsLoading(false);
+}
+useEffect(() {
+fetchData();
+}, []);
+return { data, isLoading, error };
+}
