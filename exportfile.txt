@@ -1,21 +1,50 @@
-import { useState, useEffect } from 'react';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-export const useApi = <T>(url: string, options?: AxiosRequestConfig)
-const [data, setData] = useState<T | null>(null);
-const [isLoading, setIsLoading] = useState(false);
-const [error, setError] = useState(null);
-const fetchData = async () {
-setIsLoading(true);
-try {
-const response: AxiosResponse<T> = await axios(url, options);
-setData(response.data);
-} catch (error) {
-setError(error);
-}
-setIsLoading(false);
-}
-useEffect(() {
-fetchData();
-}, []);
-return { data, isLoading, error };
-}
+import React from 'react';
+import MUIDataTable from 'mui-datatables';
+import { TableBody, TableCell, TableRow } from '@mui/material';
+
+const DataTable = () => {
+  // Sample data
+  const data = [
+    ["Title 1", "Data 1", "Data 2", "Data 3"],
+    ["Title 2", "Data 4", "Data 5", "Data 6"],
+    ["Title 3", "Data 7", "Data 8", "Data 9"],
+  ];
+
+  // Columns - This can be an empty array or you can define hidden columns
+  const columns = [
+    { name: "Title", options: { display: false } },
+    { name: "Data 1" },
+    { name: "Data 2" },
+    { name: "Data 3" },
+  ];
+
+  // Custom render function for the table body
+  const CustomTableBody = () => (
+    <TableBody>
+      {data.map((row, rowIndex) => (
+        <TableRow key={rowIndex}>
+          {row.map((cell, cellIndex) => (
+            <TableCell key={cellIndex}>
+              {cellIndex === 0 ? <strong>{cell}</strong> : cell}
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableBody>
+  );
+
+  const options = {
+    customTableBodyRender: CustomTableBody,
+    selectableRows: 'none', // Disable row selection
+    pagination: false, // Disable pagination if not needed
+    search: false, // Disable search if not needed
+    filter: false, // Disable filter if not needed
+    print: false, // Disable print if not needed
+    download: false, // Disable download if not needed
+    viewColumns: false, // Disable viewColumns if not needed
+  };
+
+  return <MUIDataTable title={"Custom Data Table"} data={data} columns={columns} options={options} />;
+};
+
+export default DataTable;
