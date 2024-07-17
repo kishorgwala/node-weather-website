@@ -1,50 +1,70 @@
-import React from 'react';
-import MUIDataTable from 'mui-datatables';
-import { TableBody, TableCell, TableRow } from '@mui/material';
+import { useState, useCallback } from 'react';
+import axios from 'axios';
 
-const DataTable = () => {
-  // Sample data
-  const data = [
-    ["Title 1", "Data 1", "Data 2", "Data 3"],
-    ["Title 2", "Data 4", "Data 5", "Data 6"],
-    ["Title 3", "Data 7", "Data 8", "Data 9"],
-  ];
+const useFetchData = () => {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Columns - This can be an empty array or you can define hidden columns
-  const columns = [
-    { name: "Title", options: { display: false } },
-    { name: "Data 1" },
-    { name: "Data 2" },
-    { name: "Data 3" },
-  ];
+  const fetchData = useCallback(async (url) => {
+    try {
+      const response = await axios.get(url);
+      setData(response.data);
+    } catch (err) {
+      setError(err);
+    }
+  }, []);
 
-  // Custom render function for the table body
-  const CustomTableBody = () => (
-    <TableBody>
-      {data.map((row, rowIndex) => (
-        <TableRow key={rowIndex}>
-          {row.map((cell, cellIndex) => (
-            <TableCell key={cellIndex}>
-              {cellIndex === 0 ? <strong>{cell}</strong> : cell}
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
-    </TableBody>
-  );
-
-  const options = {
-    customTableBodyRender: CustomTableBody,
-    selectableRows: 'none', // Disable row selection
-    pagination: false, // Disable pagination if not needed
-    search: false, // Disable search if not needed
-    filter: false, // Disable filter if not needed
-    print: false, // Disable print if not needed
-    download: false, // Disable download if not needed
-    viewColumns: false, // Disable viewColumns if not needed
-  };
-
-  return <MUIDataTable title={"Custom Data Table"} data={data} columns={columns} options={options} />;
+  return { data, error, fetchData };
 };
 
-export default DataTable;
+export default useFetchData;
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useEffect } from 'react';
+import useFetchData from './useFetchData';
+
+const FetchDataComponent = () => {
+  const { data: data1, error: error1, fetchData: fetchData1 } = useFetchData();
+  const { data: data2, error: error2, fetchData: fetchData2 } = useFetchData();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchData1('https://api.example.com/endpoint1');
+    };
+    fetchData();
+  }, [fetchData1]); // Fetch data1 when the component mounts
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (data1) {
+        await fetchData2(`https://api.example.com/endpoint2/${data1.id}`);
+      }
+    };
+    fetchData();
+  }, [data1, fetchData2]); // Fetch data2 when data1 is available
+
+  if (error1) {
+    return <div>Error: {error1.message}</div>;
+  }
+
+  if (error2) {
+    return <div>Error: {error2.message}</div>;
+  }
+
+  if (!data1 || !data2) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>Data from First API Call</h1>
+      <pre>{JSON.stringify(data1, null, 2)}</pre>
+      <h1>Data from Second API Call</h1>
+      <pre>{JSON.stringify(data2, null, 2)}</pre>
+    </div>
+  );
+};
+
+export default FetchDataComponent;
