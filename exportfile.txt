@@ -1,70 +1,77 @@
-import { useState, useCallback } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 
-const useFetchData = () => {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
+const DynamicForm = () => {
+  const [fields, setFields] = useState([{ type: 'text', name: '', value: '' }]);
 
-  const fetchData = useCallback(async (url) => {
-    try {
-      const response = await axios.get(url);
-      setData(response.data);
-    } catch (err) {
-      setError(err);
+  const handleAddField = (fieldType) => {
+    setFields([...fields, { type: fieldType, name: '', value: '' }]);
+  };
+
+  const handleRemoveField = (index) => {
+    setFields(fields.filter((_, i) => i !== index));
+  };
+
+  const handleFieldChange = (index, event) => {
+    const updatedFields = fields.map((field, i) =>
+      i === index ? { ...field, [event.target.name]: event.target.value } : field
+    );
+    setFields(updatedFields);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(fields); // Process the form data here
+  };
+
+  const renderField = (field, index) => {
+    switch (field.type) {
+      case 'text':
+        return (
+          <input
+            type="text"
+            name="value"
+            placeholder="Field Value"
+            value={field.value}
+            onChange={(e) => handleFieldChange(index, e)}
+          />
+        );
+      case 'select':
+        return (
+          <select
+            name="value"
+            value={field.value}
+            onChange={(e) => handleFieldChange(index, e)}
+          >
+            <option value="">Select an option</option>
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+          </select>
+        );
+      case 'checkbox':
+        return (
+          <input
+            type="checkbox"
+            name="value"
+            checked={field.value === 'true'}
+            onChange={(e) => handleFieldChange(index, { ...e, target: { ...e.target, value: e.target.checked ? 'true' : 'false' } })}
+          />
+        );
+      default:
+        return null;
     }
-  }, []);
-
-  return { data, error, fetchData };
-};
-
-export default useFetchData;
-
-
---------------------------------------------------------------------------------------------------------------------------------
-
-import React, { useEffect } from 'react';
-import useFetchData from './useFetchData';
-
-const FetchDataComponent = () => {
-  const { data: data1, error: error1, fetchData: fetchData1 } = useFetchData();
-  const { data: data2, error: error2, fetchData: fetchData2 } = useFetchData();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchData1('https://api.example.com/endpoint1');
-    };
-    fetchData();
-  }, [fetchData1]); // Fetch data1 when the component mounts
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (data1) {
-        await fetchData2(`https://api.example.com/endpoint2/${data1.id}`);
-      }
-    };
-    fetchData();
-  }, [data1, fetchData2]); // Fetch data2 when data1 is available
-
-  if (error1) {
-    return <div>Error: {error1.message}</div>;
-  }
-
-  if (error2) {
-    return <div>Error: {error2.message}</div>;
-  }
-
-  if (!data1 || !data2) {
-    return <div>Loading...</div>;
-  }
+  };
 
   return (
-    <div>
-      <h1>Data from First API Call</h1>
-      <pre>{JSON.stringify(data1, null, 2)}</pre>
-      <h1>Data from Second API Call</h1>
-      <pre>{JSON.stringify(data2, null, 2)}</pre>
-    </div>
-  );
-};
-
-export default FetchDataComponent;
+    <form onSubmit={handleSubmit}>
+      {fields.map((field, index) => (
+        <div key={index}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Field Name"
+            value={field.name}
+            onChange={(e) => handleFieldChange(index, e)}
+          />
+          {renderField(field, index)}
+          <button type="button" onClick={() => handleRemoveField(index)}>Remove</button>
+        </div
